@@ -1,2 +1,12 @@
 This is what we should get done for 11/19
 
+
+**Each person does a "what worked"/"what didn't work" slide for the presentation**
+Slides to create before thursday: 
+    Ares - Project Idea -- Project Design: I/O Devices Used
+    David - Project Design: Communication Used  
+    Jin - Project Design: Original Work
+
+Arduino Main: Display (16x2) LCD
+Arduino Controller: TF Card Reader
+Arduino Speaker:
