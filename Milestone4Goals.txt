@@ -9,4 +9,4 @@ Slides to create before thursday:
 
 Arduino Ouput: Display (16x2) LCD, Speakers
 Arduino Controller: TF Card Reader
-Arduino Speaker:    
+Arduino Speaker: 
