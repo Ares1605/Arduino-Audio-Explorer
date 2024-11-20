@@ -7,6 +7,6 @@ Slides to create before thursday:
     David - Project Design: Communication Used  
     Jin - Project Design: Original Work
 
-Arduino Main: Display (16x2) LCD
+Arduino Ouput: Display (16x2) LCD, Speakers
 Arduino Controller: TF Card Reader
-Arduino Speaker:
+Arduino Speaker:    
