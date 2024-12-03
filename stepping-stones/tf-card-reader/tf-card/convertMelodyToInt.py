@@ -22,52 +22,10 @@ NOTE_FREQUENCIES = {
 
 # Input sequence
 input_sequence = """
-NOTE_G4,8, NOTE_C4,8, NOTE_DS4,16, NOTE_F4,16, NOTE_G4,8, NOTE_C4,8, NOTE_DS4,16, NOTE_F4,16,
-  NOTE_G4,8, NOTE_C4,8, NOTE_DS4,16, NOTE_F4,16, NOTE_G4,8, NOTE_C4,8, NOTE_DS4,16, NOTE_F4,16,
-  NOTE_G4,8, NOTE_C4,8, NOTE_E4,16, NOTE_F4,16, NOTE_G4,8, NOTE_C4,8, NOTE_E4,16, NOTE_F4,16,
-  NOTE_G4,8, NOTE_C4,8, NOTE_E4,16, NOTE_F4,16, NOTE_G4,8, NOTE_C4,8, NOTE_E4,16, NOTE_F4,16,
-  NOTE_G4,-4, NOTE_C4,-4,
-
-  NOTE_DS4,16, NOTE_F4,16, NOTE_G4,4, NOTE_C4,4, NOTE_DS4,16, NOTE_F4,16,
-  NOTE_D4,-1,
-  NOTE_F4,-4, NOTE_AS3,-4,
-  NOTE_DS4,16, NOTE_D4,16, NOTE_F4,4, NOTE_AS3,-4,
-  NOTE_DS4,16, NOTE_D4,16, NOTE_C4,-1,
-
-  
-  NOTE_G4,-4, NOTE_C4,-4,
-
-  NOTE_DS4,16, NOTE_F4,16, NOTE_G4,4, NOTE_C4,4, NOTE_DS4,16, NOTE_F4,16,
-  NOTE_D4,-1,
-  NOTE_F4,-4, NOTE_AS3,-4,
-  NOTE_DS4,16, NOTE_D4,16, NOTE_F4,4, NOTE_AS3,-4,
-  NOTE_DS4,16, NOTE_D4,16, NOTE_C4,-1,
-  NOTE_G4,-4, NOTE_C4,-4,
-  NOTE_DS4,16, NOTE_F4,16, NOTE_G4,4,  NOTE_C4,4, NOTE_DS4,16, NOTE_F4,16,
-
-  NOTE_D4,-2,
-  NOTE_F4,-4, NOTE_AS3,-4,
-  NOTE_D4,-8, NOTE_DS4,-8, NOTE_D4,-8, NOTE_AS3,-8,
-  NOTE_C4,-1,
-  NOTE_C5,-2,
-  NOTE_AS4,-2,
-  NOTE_C4,-2,
-  NOTE_G4,-2,
-  NOTE_DS4,-2,
-  NOTE_DS4,-4, NOTE_F4,-4, 
-  NOTE_G4,-1,
-  
-  NOTE_C5,-2,
-  NOTE_AS4,-2,
-  NOTE_C4,-2,
-  NOTE_G4,-2, 
-  NOTE_DS4,-2,
-  NOTE_DS4,-4, NOTE_D4,-4,
-  NOTE_C5,8, NOTE_G4,8, NOTE_GS4,16, NOTE_AS4,16, NOTE_C5,8, NOTE_G4,8, NOTE_GS4,16, NOTE_AS4,16,
-  NOTE_C5,8, NOTE_G4,8, NOTE_GS4,16, NOTE_AS4,16, NOTE_C5,8, NOTE_G4,8, NOTE_GS4,16, NOTE_AS4,16,
-  
-  REST,4, NOTE_GS5,16, NOTE_AS5,16, NOTE_C6,8, NOTE_G5,8, NOTE_GS5,16, NOTE_AS5,16,
-  NOTE_C6,8, NOTE_G5,16, NOTE_GS5,16, NOTE_AS5,16, NOTE_C6,8, NOTE_G5,8, NOTE_GS5,16, NOTE_AS5,
+NOTE_E5, 8, NOTE_D5, 8, NOTE_FS4, 4, NOTE_GS4, 4, 
+  NOTE_CS5, 8, NOTE_B4, 8, NOTE_D4, 4, NOTE_E4, 4, 
+  NOTE_B4, 8, NOTE_A4, 8, NOTE_CS4, 4, NOTE_E4, 4,
+  NOTE_A4, 2,
 """
 
 # Function to replace notes with frequencies
@@ -86,7 +44,7 @@ def convert_notes(sequence):
 converted_sequence = convert_notes(input_sequence)
 
 # Write the converted sequence to a text file
-output_file = "song4.txt"
+output_file = "song6.txt"
 with open(output_file, "w") as file:
     file.write(converted_sequence)
 

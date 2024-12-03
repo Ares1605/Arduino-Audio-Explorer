@@ -1,19 +1,25 @@
 #include <SPI.h>
 #include <SD.h>
 
-// SD card chip select pin
+// SD card chip speaker pin
 const int chipSelect = 10;
-// const int speakerPin = 4; // Pin for audio output (PWM)
 const int buzzer = 4;
 
+// Current song choose an index from 1 - numberSongs
+int currentSong = -999999;
 
-
-
-
-int currentSong = 1;
-
-const int numberSongs = 5;
+const int numberSongs = 7;
 const int lineSize = 3;
+
+// Variables to manage melody playback state
+int currentNote = 0;          // Current note being played
+int notes = 0;                // Total number of notes
+int noteDuration = 0;         // Duration of the current note
+unsigned long noteStartTime;  // When the current note started
+bool isPlayingNote = true;    // Whether we're currently playing a note
+static bool initialized = false;
+
+
 // Stores all of the melodies after eading in from file
 String melodies[numberSongs][lineSize];
 int count = 0;
@@ -31,14 +37,51 @@ void setup() {
   //  readFile("song1.txt");
   // readFile("ReadMe.txt");
   printMelodies();
-
-  playMelody();
 }
+
+bool pause = false;
 
 void loop() {
-  // Nothing to do in the loop
-  // Serial.println("Entering SD Card Test");
+  if (Serial.available() > 0) {
+    int incomingByte = Serial.read();
+
+    if (incomingByte != '\n' && incomingByte != '\r') {
+      int numericValue = incomingByte - '0';
+      if (numericValue > 0 && numericValue <= numberSongs) {  // For selecting a song
+        currentSong = numericValue;
+        playMelody();  // Start playing the melody
+      } else if (numericValue == 9) {  // Pause
+        pause = true;
+        Serial.println();
+        Serial.println("Paused");
+      } else if (numericValue == 8) {  // Play/Resume
+        pause = false;
+        Serial.println();
+        Serial.println("Play");
+      } else if (numericValue == -4) {  // Play Next
+        Serial.println("Play Next");
+        currentSong = (currentSong % numberSongs) + 1;  // Wrap around to the first song
+        initialized = false;  // Reset the playback state
+        playMelody();
+      } else if (numericValue == -3) {  // Play Previous
+        Serial.println("Play Prev");
+        currentSong = (currentSong - 2 + numberSongs) % numberSongs + 1;  // Wrap around to the last song
+        initialized = false;  // Reset the playback state
+        playMelody();
+      } else {  // Not a valid input
+        Serial.println("Not a valid input");
+      }
+    }
+  }
+
+  // Continuously call playMelody to manage non-blocking playback
+  if (initialized && !pause) {
+    playMelody();
+  }
 }
+
+
+
 
 void readSongs(const char* filename) {
   // Open the file on the SD card
@@ -100,6 +143,7 @@ void printMelodies() {
     }
     Serial.println();
   }
+  Serial.println();
 }
 
 void readMelody(int*& melody, int& musicSize, int& valuesAdded) {
@@ -168,61 +212,68 @@ void readMelody(int*& melody, int& musicSize, int& valuesAdded) {
   }
 }
 
+
+
+
 void playMelody() {
-  int tempo = melodies[currentSong][1].toInt();
-  String title = melodies[currentSong][0];
-  Serial.print("Title: ");
-  Serial.println(title);
-  Serial.print("Tempo: ");
-  Serial.println(tempo);
+  static int* melody = nullptr;
+  static int melodySize = 50;
+  static int valuesAdded = 0;
 
-  int* melody;
-  int melodySize = 50;
-  int valuesAdded = 0;
-  readMelody(melody, melodySize, valuesAdded);
+  if (!initialized) {
+    int tempo = melodies[currentSong][1].toInt();
+    String title = melodies[currentSong][0];
+    Serial.print("Title: ");
+    Serial.println(title);
+    Serial.print("Tempo: ");
+    Serial.println(tempo);
 
-  // Serial.println("** Melody **");
-  // for (int i = 0; i < valuesAdded; i++) {
-  //   Serial.println(melody[i]);
-  // }
+    melody = new int[melodySize];
+    readMelody(melody, melodySize, valuesAdded);
 
-  Serial.print("Values Added: ");
-  Serial.println(valuesAdded);
+    notes = valuesAdded / 2;  // Number of notes is half of the valuesAdded
+    noteStartTime = millis();
+    initialized = true;
+    return;
+  }
 
-  Serial.print("Array Size: ");
-  Serial.println(melodySize);
+  if (currentNote < notes) {
+    unsigned long currentTime = millis();
+    int tempo = melodies[currentSong][1].toInt();
+    int wholenote = (60000 * 4) / tempo;
 
-  // sizeof gives the number of bytes, each int value is composed of two bytes (16 bits)
-  // there are two values per note (pitch and duration), so for each note there are four bytes
-  int notes = valuesAdded / sizeof(melody[0]) / 2;
-
-  // this calculates the duration of a whole note in ms
-  int wholenote = (60000 * 4) / tempo;
-
-  int divider = 0, noteDuration = 0;
-
-  // iterate over the notes of the melody.
-  // Remember, the array is twice the number of notes (notes + durations)
-  for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
-
-    // calculates the duration of each note
-    divider = melody[thisNote + 1];
-    if (divider > 0) {
-      // regular note, just proceed
-      noteDuration = (wholenote) / divider;
-    } else if (divider < 0) {
-      // dotted notes are represented with negative durations!!
-      noteDuration = (wholenote) / abs(divider);
-      noteDuration *= 1.5;  // increases the duration in half for dotted notes
+    if (isPlayingNote) {
+      // Play the current note
+      if (currentTime - noteStartTime >= noteDuration * 0.9) {  // Play 90% of the note
+        noTone(buzzer);                                         // Stop the tone
+        isPlayingNote = false;                                  // Switch to pause phase
+        noteStartTime = currentTime;                            // Reset the start time for the pause
+      }
+    } else {
+      // Pause phase
+      if (currentTime - noteStartTime >= noteDuration * 0.1) {  // Pause for 10%
+        currentNote++;                                          // Move to the next note
+        if (currentNote < notes) {
+          int divider = melody[currentNote * 2 + 1];
+          if (divider > 0) {
+            noteDuration = wholenote / divider;
+          } else if (divider < 0) {
+            noteDuration = wholenote / abs(divider) * 1.5;  // Handle dotted notes
+          }
+          tone(buzzer, melody[currentNote * 2], noteDuration * 0.9);
+          noteStartTime = currentTime;  // Reset the start time for the next note
+          isPlayingNote = true;         // Switch back to playing phase
+        }
+      }
     }
-
-    // we only play the note for 90% of the duration, leaving 10% as a pause
-    tone(buzzer, melody[thisNote], noteDuration * 0.9);
-
-    // Wait for the specief duration before playing the next note.
-    delay(noteDuration);
-
-    // stop the waveform generation before the next note.
-    noTone(buzzer);
+  } else {
+    // Finished playing the melody
+    delete[] melody;
+    initialized = false;  // Reset for the next call
+    currentNote = 0;
+    notes = 0;
+    valuesAdded = 0;
+    melodySize = 50;
+    Serial.println("Finished playing the melody.");
   }
 }
