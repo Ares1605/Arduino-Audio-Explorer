@@ -5,26 +5,25 @@
 ServerManager::ServerManager(char* ssid_, char* password_) {
     ssid = ssid_;
     password = password_;
-    // router = router_;
     logger = new OLEDLogger("S");
     ServerManager::boot();
 }
 void ServerManager::listen() {
-  WiFiClient client = server->available();
+  WiFiClient client;
   
-  if (client) {
+  while (client = server->available()) {
+    Serial.println("\n\nserver available!");
     
     // Read any available data immediately
     if (client.available()) {
+      Serial.println("client available");
       String message = client.readStringUntil('\n');
       logger->info(message);
       
       client.println(message);
-    }
-    
-    // If client is done sending data, close connection
-    if (!client.connected()) {
       client.stop();
+    } else {
+      Serial.println("client unavailable");
     }
   }
 }

@@ -24,13 +24,10 @@ void OLEDLogger::displayBuffer() {
   display->clearDisplay();
   display->setTextSize(1);
   display->setTextColor(SSD1306_WHITE);
-  Serial.println("PRINTING");
   for (int i = 0; i < OLEDLogger::MAX_LINE; i++) {
     display->setCursor(0, i*8);
     display->print(OLEDLogger::buffer[i]);
-    Serial.println(OLEDLogger::buffer[i]);
   }
-  Serial.println("OVER");
   display->display();
 }
 void OLEDLogger::shiftBuffer() {

@@ -4,7 +4,8 @@ ClientManager* client;
 int counter = 0;
 
 void handleResponse(String message) {
-  String response = message + "R" + String(counter++);
+  Serial.println("callback triggered");
+  String response = String(counter++);
   client->send(response, handleResponse);
 }
 void setup() {
@@ -17,8 +18,6 @@ void setup() {
   client->send(message, handleResponse);
 }
 void loop() {
-  delay(1000);
-  Serial.println("pre-crash");
   delay(500);
   client->listen();
 }

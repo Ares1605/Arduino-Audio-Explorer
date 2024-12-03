@@ -16,22 +16,28 @@ ClientManager::ClientManager(char* ssid_, char* password_, IPAddress ip_) {
 }
 
 void ClientManager::send(String message, void (*callback_)(String message)) {
- // Try to connect to the server
- WiFiClient client;
- if (client.connect(ip, 80)) {
-   Serial.println("Connected to server");
-   
-   // Send a message with an incrementing counter
-   client.println(message);
-   Serial.println("Sent: " + message);
-   
-   Connection* conn = new Connection;  // Just allocate the struct
-   conn->callback = callback_;        // Set fields directly
-   conn->client = &client;
-   connections.push_back(conn);
- } else {
-   Serial.println("Couldn't connect to server");
- }
+  // Create WiFiClient on heap
+  WiFiClient* client = new WiFiClient();
+  Serial.println("TRIGGERRR");
+  
+  if (client->connect(ip, 80)) {
+    while(client->available()) {
+        client->read();  // Clear any existing data
+    }
+    Serial.println("Connected to server");
+    
+    client->println(message);
+    delay(50);
+    Serial.println("Sent: " + message);
+    
+    Connection* conn = new Connection;
+    conn->callback = callback_;
+    conn->client = client;  // Store the heap-allocated client
+    connections.push_back(conn);
+  } else {
+    Serial.println("Couldn't connect to server");
+    delete client;  // Clean up if connection failed
+  }
 }
 void ClientManager::boot() {
   Serial.begin(9600);
@@ -63,17 +69,22 @@ void ClientManager::boot() {
   Serial.println(WiFi.localIP());
 }
 void ClientManager::listen() {
-  for (auto it = connections.begin(); it != connections.end();) {
-    Connection* connection = *it;
+  Serial.print("conn size:");
+  Serial.println(connections.size());
+  for (int i = 0; i < connections.size(); i++) {
+    Connection* connection = connections[i];
     if (!connection) {
-        it = connections.erase(it);
+        connections.erase(connections.begin() + i);
+        i--;  // Adjust index after removal
         continue;
     }
+
 
     WiFiClient* client = connection->client;
     if (!client) {
         delete connection;
-        it = connections.erase(it);
+        connections.erase(connections.begin() + i);
+        i--;  // Adjust index after removal
         continue;
     }
 
@@ -81,8 +92,10 @@ void ClientManager::listen() {
     if (!client->connected()) {
         Serial.println("Client disconnected");
         client->stop();
-        delete connection;
-        it = connections.erase(it);
+        delete client;          // Delete the WiFiClient first
+        delete connection;      // Then delete the Connection
+        connections.erase(connections.begin() + i);
+        i--;
         continue;
     }
 
@@ -92,17 +105,17 @@ void ClientManager::listen() {
         Serial.println("Server response: " + response);
         
         if (connection->callback) {
-            // Add debug print before callback
             Serial.println("Executing callback");
             connection->callback(response);
             Serial.println("Callback completed");
         }
-        
-        // Don't immediately disconnect after getting data
-        ++it;
-    } else {
-        // No data available, keep connection alive
-        ++it;
+
+        client->stop();
+        delete client;          // Delete the WiFiClient first
+        delete connection;      // Then delete the Connection
+        connections.erase(connections.begin() + i);
+        i--;
+        continue;
     }
   }
 }
