@@ -8,7 +8,7 @@ const int buzzer = 4;
 // Current song choose an index from 1 - numberSongs
 int currentSong = -999999;
 
-const int numberSongs = 7;
+const int numberSongs = 9;
 const int lineSize = 3;
 
 // Variables to manage melody playback state
@@ -18,6 +18,7 @@ int noteDuration = 0;         // Duration of the current note
 unsigned long noteStartTime;  // When the current note started
 bool isPlayingNote = true;    // Whether we're currently playing a note
 static bool initialized = false;
+
 
 
 // Stores all of the melodies after eading in from file
@@ -42,31 +43,50 @@ void setup() {
 bool pause = false;
 
 void loop() {
+
   if (Serial.available() > 0) {
+
     int incomingByte = Serial.read();
 
     if (incomingByte != '\n' && incomingByte != '\r') {
       int numericValue = incomingByte - '0';
       if (numericValue > 0 && numericValue <= numberSongs) {  // For selecting a song
         currentSong = numericValue;
-        playMelody();  // Start playing the melody
-      } else if (numericValue == 9) {  // Pause
+        playMelody();                          // Start playing the melody
+      } else if ((char)incomingByte == 'x') {  // Pause
         pause = true;
         Serial.println();
         Serial.println("Paused");
-      } else if (numericValue == 8) {  // Play/Resume
+      } else if ((char)incomingByte == 'c') {  // Play
         pause = false;
         Serial.println();
         Serial.println("Play");
-      } else if (numericValue == -4) {  // Play Next
+      } else if ((char)incomingByte == 'o') {  // Next
         Serial.println("Play Next");
-        currentSong = (currentSong % numberSongs) + 1;  // Wrap around to the first song
+
+        if (currentSong + 1 == numberSongs) {
+          currentSong = 1;
+        } else {
+          currentSong++;
+        }
+
         initialized = false;  // Reset the playback state
+        currentNote = 0;
+        notes = 0;
+
         playMelody();
-      } else if (numericValue == -3) {  // Play Previous
-        Serial.println("Play Prev");
-        currentSong = (currentSong - 2 + numberSongs) % numberSongs + 1;  // Wrap around to the last song
-        initialized = false;  // Reset the playback state
+      } else if ((char)incomingByte == 'i') {  // Previous
+        Serial.println("Prev");
+
+        if (currentSong - 1 == 0) {
+          currentSong = numberSongs - 1;
+        } else {
+          currentSong--;
+        }
+
+        initialized = false;
+        currentNote = 0;
+        notes = 0;  // Reset the playback state
         playMelody();
       } else {  // Not a valid input
         Serial.println("Not a valid input");
@@ -79,9 +99,6 @@ void loop() {
     playMelody();
   }
 }
-
-
-
 
 void readSongs(const char* filename) {
   // Open the file on the SD card
@@ -132,6 +149,7 @@ void readSongs(const char* filename) {
 }
 
 void printMelodies() {
+  Serial.println("Print Melodies Called");
   for (int i = 0; i < numberSongs; i++) {
     Serial.print("Line ");
     Serial.print(i);
@@ -212,9 +230,6 @@ void readMelody(int*& melody, int& musicSize, int& valuesAdded) {
   }
 }
 
-
-
-
 void playMelody() {
   static int* melody = nullptr;
   static int melodySize = 50;
@@ -227,6 +242,15 @@ void playMelody() {
     Serial.println(title);
     Serial.print("Tempo: ");
     Serial.println(tempo);
+
+    currentNote = 0;
+    notes = 0;
+
+    if (melody != nullptr) {
+      delete[] melody;  // Free previous memory before allocating new
+    }
+    melodySize = 50;
+    valuesAdded = 0;
 
     melody = new int[melodySize];
     readMelody(melody, melodySize, valuesAdded);
@@ -274,6 +298,7 @@ void playMelody() {
     notes = 0;
     valuesAdded = 0;
     melodySize = 50;
-    Serial.println("Finished playing the melody.");
+    // Serial.println("Finished playing the melody.");
+    printMelodies();
   }
 }
