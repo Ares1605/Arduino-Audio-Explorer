@@ -2,10 +2,10 @@
 #include "ServerManager.h"
 #include "OLEDLogger.h"
 
-ServerManager::ServerManager(char* ssid_, char* password_, Router* router_) {
+ServerManager::ServerManager(char* ssid_, char* password_) {
     ssid = ssid_;
     password = password_;
-    router = router_;
+    // router = router_;
     logger = new OLEDLogger("S");
     ServerManager::boot();
 }
@@ -13,21 +13,18 @@ void ServerManager::listen() {
   WiFiClient client = server->available();
   
   if (client) {
-    logger->info("New Client");
     
     // Read any available data immediately
     if (client.available()) {
       String message = client.readStringUntil('\n');
-      Serial.println("Received: " + message);
+      logger->info(message);
       
-      // Echo back to client
-      client.println("Server received: " + message);
+      client.println(message);
     }
     
     // If client is done sending data, close connection
     if (!client.connected()) {
       client.stop();
-      logger->info("DC Client");
     }
   }
 }
