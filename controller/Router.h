@@ -5,6 +5,7 @@
 
 class Router {
 public:
+    Router();
     void bind(String endpoint_, void (*callback_)(String));
     void recieve();
     

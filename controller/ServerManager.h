@@ -7,15 +7,17 @@
 
 class ServerManager {
 public: 
-    ServerManager(char* ssid_, char* password_);
-    void run(Router* router);
+    ServerManager(char* ssid_, char* password_, Router* router_);
+    void listen();
 
 private:
     char* ssid;
     char* password;
+
     Router* router;
     OLEDLogger* logger;
-    WiFiServer* wifiServer;  // Changed to store WiFiServer
+    WiFiServer* server;
+    void boot();
 };
 
 #endif
